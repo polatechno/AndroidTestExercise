@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">AndroidTestExercise</string>
+    <string name="title_activity_login">LoginActivity</string>
+
+    <string name="no_internet_title">Error</string>
+    <string name="no_internet_desc">Something went wrong. Check your connection and try again...</string>
+
+    <string name="empty_screen">Empty List. No signals found. </string>
+    <string name="menu_logout_title">Logout</string>
+    <string name="login_hint">Login</string>
+    <string name="password_hint">Password</string>
+    <string name="login_btn_title">Login</string>
+    <string name="list_item_pair_placeholder">EURJPY</string>
+    <string name="list_item_comment_placeholder">Comment</string>
+    <string name="list_item_price_placeholder">tvPrice</string>
+    <string name="list_item_tradesysytem_placeholder">tvTradingSystem</string>
+    <string name="list_item_sl_placeholder">tvSl</string>
+    <string name="list_item_period_placeholder">tvPeriod</string>
+    <string name="list_item_tp_placeholder">tvTp</string>
+    <string name="list_item_cmd_placeholder">tvCmd</string>
+    <string name="list_item_time_placeholder">ActualTime</string>
+    <string name="list_item_id_placeholder">tvId</string>
+    <string name="prefix_cmd">Cmd:</string>
+    <string name="prefix_tradsys">Trad.sys: </string>
+    <string name="prefix_period">Period: </string>
+    <string name="prefix_price">Price: </string>
+    <string name="prefix_sl">Sl: </string>
+    <string name="prefix_tp">Tp: </string>
+    <string name="prefix_id">ID: </string>
+    <string name="signal_list_title">Signal List By Instruments</string>
+    <string name="loginScreenSuffix">: Login</string>
+
+</resources>

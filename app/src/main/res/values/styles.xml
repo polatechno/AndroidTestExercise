@@ -1,0 +1,25 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
+
+        <item name="colorPrimaryVariant">@color/colorPrimary</item>
+
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="colorOnSecondary">@android:color/white</item>
+        <item name="colorSecondary">@color/colorPrimary</item>
+
+        <item name="chipIconTint">@color/chipIconTint</item>
+
+        <item name="CustomChipChoiceStyle">@style/ChipStyle</item>
+
+    </style>
+
+    <style name="ChipStyle" parent="Widget.MaterialComponents.Chip.Choice"/>
+
+</resources>
