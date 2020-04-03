@@ -1,4 +1,4 @@
-package com.polatechno.androidtestexercise.network;
+package com.polatechno.androidtestexercise.repository.network;
 
 import com.polatechno.androidtestexercise.model.PartnerAccount;
 import com.polatechno.androidtestexercise.model.SignalItem;
@@ -17,6 +17,11 @@ import retrofit2.http.QueryMap;
 
 public interface ApiInterface {
 
+    //network call for login api...
+    @POST("api/Authentication/RequestMoblieCabinetApiToken")
+    Call<String> login(@Body PartnerAccount body);
+
+
 
     //network call for get fetch signal with selected instrument pairs...
     @GET("clientmobile/GetAnalyticSignals/{partnerId}")
@@ -25,8 +30,6 @@ public interface ApiInterface {
                                                       @QueryMap Map<String, String> paramsMap);
 
 
-    //network call for login api...
-    @POST("api/Authentication/RequestMoblieCabinetApiToken")
-    Call<String> login(@Body PartnerAccount body);
+
 
 }

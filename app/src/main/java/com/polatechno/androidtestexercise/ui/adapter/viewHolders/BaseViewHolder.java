@@ -1,4 +1,4 @@
-package com.polatechno.androidtestexercise.adapter.viewHolders;
+package com.polatechno.androidtestexercise.ui.adapter.viewHolders;
 
 import android.view.View;
 

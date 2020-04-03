@@ -5,14 +5,14 @@ import java.util.HashMap;
 public class SignalListRequestParams {
 
     private int tradingsystem;
-    private HashMap<String, String> pairs;
+    private HashMap<String, PairItem> pairs;
     private Long from;
     private Long to;
 
     public SignalListRequestParams() {
     }
 
-    public SignalListRequestParams(int tradingsystem, HashMap<String, String> pairs, Long from, Long to) {
+    public SignalListRequestParams(int tradingsystem, HashMap<String, PairItem> pairs, Long from, Long to) {
         this.tradingsystem = tradingsystem;
         this.pairs = pairs;
         this.from = from;
@@ -27,44 +27,39 @@ public class SignalListRequestParams {
         this.tradingsystem = tradingsystem;
     }
 
-    public void addPair(String pair) {
-        pairs.put(pair, pair);
+    public void addPair(PairItem pair) {
+        pairs.put(pair.getTitle(), pair);
     }
 
-    public void removePair(String pair) {
 
-        String returned_value;
-        for (String key : pairs.keySet()) {
 
-            if (key.equals(pair)) {
-                returned_value = (String) pairs.remove(key);
-                break;
-            }
-
-        }
+    public HashMap<String, PairItem> getPairs() {
+        return pairs;
     }
 
-    public String getPairs() {
+    public String getPairsString() {
         StringBuilder mapAsString = new StringBuilder("");
 
-        int count = pairs.size();
-
-        int i = 1;
+        int i = 0;
         for (String key : pairs.keySet()) {
 
-            if (i == count) {
-                mapAsString.append(key);
-            } else {
-                mapAsString.append(key + ",");
+            if (pairs.get(key).isSelected) {
+
+                i++;
+                if (i == 1) {
+                    mapAsString.append(key);
+                } else {
+                    mapAsString.append("," + key);
+                }
+
             }
 
-            i++;
         }
 
         return mapAsString.toString();
     }
 
-    public void setPairs(HashMap<String, String> pairs) {
+    public void setPairs(HashMap<String, PairItem> pairs) {
         this.pairs = pairs;
     }
 

@@ -29,5 +29,6 @@
     <string name="prefix_id">ID: </string>
     <string name="signal_list_title">Signal List By Instruments</string>
     <string name="loginScreenSuffix">: Login</string>
+    <string name="login_failed">Authentication failed. Check your credentials and try again!</string>
 
 </resources>

@@ -17,26 +17,23 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.gson.Gson;
 import com.polatechno.androidtestexercise.AppUtils.MyHelperMethods;
 import com.polatechno.androidtestexercise.R;
-import com.polatechno.androidtestexercise.adapter.SignalListAdapter;
+import com.polatechno.androidtestexercise.ui.adapter.SignalListAdapter;
 import com.polatechno.androidtestexercise.model.PartnerAccount;
 import com.polatechno.androidtestexercise.model.SignalItem;
 import com.polatechno.androidtestexercise.model.SignalListRequestParams;
-import com.polatechno.androidtestexercise.network.ApiClient;
-import com.polatechno.androidtestexercise.network.ApiInterface;
+import com.polatechno.androidtestexercise.model.SignalListResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,48 +53,135 @@ public class MainActivity extends AppCompatActivity {
     private SignalListAdapter mSignalListAdapter;
     private Gson gson;
     private PartnerAccount partnerUser;
-    private SignalListRequestParams signalListRequestParams = new SignalListRequestParams();
     private HashMap<String, String> mapInitialPairs = new HashMap<>();
-
+    private MainViewModel mainViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_signals);
 
-        if(getSupportActionBar() != null){
+        if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(R.string.signal_list_title);
         }
 
-        gson = new Gson();
-
-        //checks from the cache, if user is authenticated. if not, will go to LoginActivity
-        partnerUser = MyHelperMethods.getLoggedInUser(this, gson);
-        if (partnerUser == null) {
-            goToLoginActivity();
-        }
-
-
-        //Preloading available instruments, to fetch all available.
-        //EURUSD, GBPUSD, USDJPY, USDCHF, USDCAD, AUDUSD, NZDUSD
-        mapInitialPairs.put("EURUSD", "EURUSD");
-        mapInitialPairs.put("GBPUSD", "GBPUSD");
-        mapInitialPairs.put("USDJPY", "USDJPY");
-        mapInitialPairs.put("USDCHF", "USDCHF");
-        mapInitialPairs.put("USDCAD", "USDCAD");
-        mapInitialPairs.put("AUDUSD", "AUDUSD");
-        mapInitialPairs.put("NZDUSD", "NZDUSD");
-
-        //initializing request query params. In my case, only instruments are dynamic. Fixed time range. Fixed trading system. And for this authenticated user.
-        signalListRequestParams.setTradingsystem(3);
-        signalListRequestParams.setPairs(mapInitialPairs);
-        signalListRequestParams.setFrom((long) 1479860023);
-        signalListRequestParams.setTo((long) 1480066860);
-
         initViews();
         setUpRecyclerView();
-        populateIntrumentsChipGroup();
-        getSignalListByInstruments();
+
+        mainViewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+        mainViewModel.getRequestParams();
+        mainViewModel.getSignals();
+
+        setModelViewObserver();
+        setQueryParamsObserver();
+
+
+//        getSignalListByInstruments();
+    }
+
+    private void setQueryParamsObserver() {
+        mainViewModel.signalListRequestParamsMutableLiveData.observe(this, new Observer<SignalListRequestParams>() {
+            @Override
+            public void onChanged(SignalListRequestParams signalListRequestParams) {
+
+                chipGroupInstruments.removeAllViews();
+
+                Chip eachChipView;
+                for (String key : signalListRequestParams.getPairs().keySet()) {
+
+                    eachChipView = new Chip(MainActivity.this, null, R.attr.CustomChipChoiceStyle);
+
+                    eachChipView.setText(key);
+                    eachChipView.setChecked(signalListRequestParams.getPairs().get(key).isSelected());
+                    eachChipView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                            mainViewModel.handlePairStatusChange(compoundButton.getText().toString(), b);
+
+                            Log.d(TAG, "onCheckedChanged: new status : " + b + " Text " + compoundButton.getText().toString());
+
+                        }
+                    });
+
+                    chipGroupInstruments.addView((View) eachChipView);
+
+                }
+
+
+            }
+        });
+
+    }
+
+    private void setModelViewObserver() {
+
+        mainViewModel.signalListResponse.observe(this, new Observer<SignalListResponse>() {
+            @Override
+            public void onChanged(SignalListResponse signalListResponse) {
+
+                Log.d(TAG, "onChanged: Live data changed... ");
+
+                if (signalListResponse.isLoading()) {
+
+                    Log.d(TAG, "onChanged: Live data changed... isLoading = True ");
+
+                    tv_empty_message.setVisibility(View.GONE);
+                    stub.setVisibility(View.GONE);
+                    progressBar.setVisibility(View.VISIBLE);
+                    mSignalsRecView.setVisibility(View.GONE);
+
+                } else {
+
+                    Log.d(TAG, "onChanged: Live data changed... isLoading = false ");
+
+                    //onResponse
+                    if (signalListResponse.isOnResponse()) {
+
+
+                        Log.d(TAG, "onChanged: Live data changed... status:  OnResponse ");
+
+                        mSignalsRecView.setVisibility(View.VISIBLE);
+                        progressBar.setVisibility(View.GONE);
+                        swipeToRefresh.setRefreshing(false);
+
+                        if (signalListResponse.getStatusCode() == 200) {
+                            mSignalListAdapter.addItems(signalListResponse.getSignalItems());
+
+                            Log.d(TAG, "onChanged: statusCode = 200");
+
+                            //If empty result, show empty message
+                            if (signalListResponse.getSignalItems().size() == 0) {
+                                tv_empty_message.setVisibility(View.VISIBLE);
+                            }
+
+                            //if user token is not valid. User should login again...
+                        } else if (signalListResponse.getStatusCode() == 403) {
+                            Log.d(TAG, "onChanged: statusCode = 403");
+                            logOutUser();
+                        }
+
+
+                    }
+                    //onFailure
+                    else {
+
+                        Log.d(TAG, "onChanged: Live data changed... status:  onFailure " + signalListResponse.getMessage());
+
+                        Log.i("onFailure", "Retrofit OnFailure: " + signalListResponse.getMessage());
+                        Toast.makeText(getApplicationContext(), "Unable to fetch json: " + signalListResponse.getMessage(), Toast.LENGTH_LONG).show();
+
+                        mSignalsRecView.setVisibility(View.GONE);
+                        progressBar.setVisibility(View.GONE);
+                        swipeToRefresh.setRefreshing(false);
+                        stub.setVisibility(View.VISIBLE);
+
+                    }
+
+                }
+
+            }
+        });
+
     }
 
     private void initViews() {
@@ -114,50 +198,22 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onRefresh() {
                         swipeToRefresh.setRefreshing(false);
-                        getSignalListByInstruments();
+                        mainViewModel.handleForceRefresh();
+
+//                        getSignalListByInstruments();
+//                        getSignalsLiveData();
                     }
                 }
         );
 
-    }
-
-    //Showing instrument pairs. Initially all selected. Then it fetches dynamically.
-    private void populateIntrumentsChipGroup() {
-
         chipGroupInstruments = findViewById(R.id.chipGroupInstruments);
 
-        Chip eachChipView;
-        for (String key : mapInitialPairs.keySet()) {
-
-            eachChipView = new Chip(this, null, R.attr.CustomChipChoiceStyle);
-
-            eachChipView.setText(key);
-            eachChipView.setChecked(true);
-            eachChipView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                    if (b) {
-                        signalListRequestParams.addPair(compoundButton.getText().toString());
-                    } else {
-                        signalListRequestParams.removePair(compoundButton.getText().toString());
-                    }
-
-                    getSignalListByInstruments();
-
-                    Log.d(TAG, "onCheckedChanged: new status : " + b + " Text " + compoundButton.getText().toString());
-                }
-            });
-
-            chipGroupInstruments.addView((View) eachChipView);
-
-
-        }
     }
 
     //Handling retry call shows on the screen
     public void onRetryClick(View view) {
         stub.setVisibility(View.GONE);
-        getSignalListByInstruments();
+        mainViewModel.handleForceRefresh();
     }
 
     private void setUpRecyclerView() {
@@ -168,69 +224,8 @@ public class MainActivity extends AppCompatActivity {
         mSignalsRecView.setLayoutManager(mLayoutManager);
         mSignalsRecView.setItemAnimator(new DefaultItemAnimator());
         mSignalListAdapter = new SignalListAdapter(
-                getApplicationContext(),
-                mSignals);
+                getApplicationContext(), new ArrayList<SignalItem>());
         mSignalsRecView.setAdapter(mSignalListAdapter);
-    }
-
-    private void getSignalListByInstruments() {
-
-        tv_empty_message.setVisibility(View.GONE);
-        stub.setVisibility(View.GONE);
-        progressBar.setVisibility(View.VISIBLE);
-        mSignalsRecView.setVisibility(View.GONE);
-
-        ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
-
-        //set paramsMap for request
-        Map<String, String> paramsMap = new HashMap<String, String>();
-        paramsMap.put("tradingsystem", String.valueOf(signalListRequestParams.getTradingsystem()));
-        paramsMap.put("pairs", signalListRequestParams.getPairs());
-        paramsMap.put("from", String.valueOf(signalListRequestParams.getFrom()));
-        paramsMap.put("to", String.valueOf(signalListRequestParams.getTo()));
-
-        Call<List<SignalItem>> apiCall = apiService.getSignalListByInstruments(partnerUser.getPasskey(), partnerUser.getLogin(), paramsMap);
-
-        apiCall.enqueue(new Callback<List<SignalItem>>() {
-            @Override
-            public void onResponse(Call<List<SignalItem>> call, Response<List<SignalItem>> response) {
-
-                mSignalsRecView.setVisibility(View.VISIBLE);
-
-                progressBar.setVisibility(View.GONE);
-                swipeToRefresh.setRefreshing(false);
-
-                //If respose success, if any list data received.
-                if (response.code() == 200) {
-                    mSignalListAdapter.addItems(response.body());
-
-                    //If empty result, show empty message
-                    if (mSignalListAdapter.getItemCount() == 0) {
-                        tv_empty_message.setVisibility(View.VISIBLE);
-                    }
-
-
-                    //if user token is not valid. User should login again...
-                } else if (response.code() == 403) {
-                    logOutUser();
-                }
-
-            }
-
-            @Override
-            public void onFailure(Call<List<SignalItem>> call, Throwable t) {
-
-                Log.d(TAG, "onFailure: " + call.toString());
-
-                Log.i("onFailure", "Retrofit OnFailure: " + t.getMessage());
-                Toast.makeText(getApplicationContext(), "Unable to fetch json: " + t.getMessage(), Toast.LENGTH_LONG).show();
-
-                mSignalsRecView.setVisibility(View.GONE);
-                progressBar.setVisibility(View.GONE);
-                swipeToRefresh.setRefreshing(false);
-                stub.setVisibility(View.VISIBLE);
-            }
-        });
     }
 
     private void goToLoginActivity() {

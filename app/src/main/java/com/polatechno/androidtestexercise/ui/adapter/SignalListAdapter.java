@@ -1,4 +1,4 @@
-package com.polatechno.androidtestexercise.adapter;
+package com.polatechno.androidtestexercise.ui.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -9,7 +9,7 @@ import android.widget.TextView;
 import com.polatechno.androidtestexercise.AppUtils.MyHelperMethods;
 import com.polatechno.androidtestexercise.R;
 import com.polatechno.androidtestexercise.model.SignalItem;
-import com.polatechno.androidtestexercise.adapter.viewHolders.BaseViewHolder;
+import com.polatechno.androidtestexercise.ui.adapter.viewHolders.BaseViewHolder;
 
 import java.util.List;
 

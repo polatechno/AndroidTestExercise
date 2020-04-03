@@ -1,4 +1,4 @@
-package com.polatechno.androidtestexercise.network;
+package com.polatechno.androidtestexercise.repository.network;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

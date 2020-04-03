@@ -7,14 +7,16 @@ import com.google.gson.Gson;
 import com.polatechno.androidtestexercise.AppUtils.MyHelperMethods;
 import com.polatechno.androidtestexercise.R;
 import com.polatechno.androidtestexercise.model.PartnerAccount;
-import com.polatechno.androidtestexercise.network.ApiClient;
-import com.polatechno.androidtestexercise.network.ApiInterface;
+import com.polatechno.androidtestexercise.repository.network.ApiClient;
+import com.polatechno.androidtestexercise.repository.network.ApiInterface;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import android.os.PersistableBundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -25,6 +27,8 @@ import android.widget.Toast;
 
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private static final String TAG = "LoginActivity";
 
     //UI views
     private Button buttonLogin;
@@ -56,6 +60,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         apiService = ApiClient.getClient().create(ApiInterface.class);
 
         initViews();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
     }
 
     private void initViews() {
@@ -94,6 +103,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     //checks if provided credentials are valid or not, by communicating with backend
     private void checkCredentials() {
 
+
+
         progressBarHorizontal.setVisibility(View.VISIBLE);
 
         //This object will be used as form post body params
@@ -108,6 +119,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void onResponse(Call<String> call, Response<String> response) {
                 progressBarHorizontal.setVisibility(View.GONE);
 
+                Log.d(TAG, "onResponse: Response: " +response.body());
+                Log.d(TAG, "onResponse: Token: " +response.body());
+
+
                 //if response success, save data as cache, and open MainActivity
                 if (response.code() == 200) {
                     if (response.body().length() > 0) {
@@ -119,7 +134,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                 } else {
 
-                    Toast.makeText(LoginActivity.this, "Authentication failed. Check your credentials and try again!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this, R.string.login_failed, Toast.LENGTH_LONG).show();
 
                 }
 
@@ -129,6 +144,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void onFailure(Call<String> call, Throwable t) {
 
                 progressBarHorizontal.setVisibility(View.GONE);
+
 
                 Log.i("onFailure", "Retrofit OnFailure: " + t.getMessage());
                 Toast.makeText(getApplicationContext(), "Unable to fetch json: " + t.getMessage(), Toast.LENGTH_LONG).show();
